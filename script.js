@@ -1,3 +1,5 @@
+import { supabase } from './supabase.js'
+
 // Game Constants
 const availableImages = [
   'images/blue.png', 
@@ -461,22 +463,6 @@ function showEndOverlay() {
     if (username) {
       currentUsername = username;
       saveToLeaderboard(username);
-      
-      // Replace the form with success message
-      document.getElementById('usernameForm').innerHTML = `
-  <div class="score-submitted-message">
-    <div class="submission-text">Score submitted!</div>
-    <div class="submission-action">
-      <a href="#" id="viewLeaderboardLink" class="text-only-buttonf">View Leaderboard</a>
-    </div>
-  </div>
-`;
-      
-      document.getElementById('viewLeaderboardLink')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        gameOverOverlay.classList.remove('show');
-        showLeaderboard();
-      });
     }
   });
 
@@ -513,7 +499,6 @@ function showEndOverlay() {
   }
 }
 
-
 // Leaderboard functions
 function showLeaderboard() {
   document.querySelector('.game-container').style.display = 'none';
@@ -529,11 +514,10 @@ function hideLeaderboard() {
   document.getElementById('leaderboardModal').classList.remove('show');
   document.getElementById('showLeaderboard').style.display = 'block';
   
-  
   // Reset to initial menu state
   document.querySelector('.game-container').style.display = 'none';
   document.getElementById('levelSelector').style.display = 'flex';
-  document.getElementById('startButton').style.display = 'none'; // Hide Let's Play button
+  document.getElementById('startButton').style.display = 'none';
   document.getElementById('restartButton').style.display = 'none';
   levelHint.style.display = 'block';
   levelHint.classList.remove('rotated');
@@ -542,23 +526,34 @@ function hideLeaderboard() {
   updateLevelDisplay();
 }
 
-function updateLeaderboardDisplay() {
-  const leaderboard = JSON.parse(localStorage.getItem('proveBoardLeaderboard')) || [];
+async function updateLeaderboardDisplay() {
   const tbody = document.getElementById('leaderboardTable')?.querySelector('tbody');
   if (!tbody) return;
   
   tbody.innerHTML = '';
   
-  leaderboard.slice(0, 10).forEach((entry, index) => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${entry.username}</td>
-      <td>${entry.mode}</td>
-      <td>${entry.score.toLocaleString()}</td>
-    `;
-    tbody.appendChild(row);
-  });
+  try {
+    const { data, error } = await supabase
+      .from('leaderboard')
+      .select('*')
+      .order('score', { ascending: false })
+      .limit(10);
+    
+    if (error) throw error;
+    
+    data.forEach((entry, index) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${entry.username}</td>
+        <td>${entry.mode}</td>
+        <td>${entry.score.toLocaleString()}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  } catch (err) {
+    console.error('Error fetching leaderboard:', err);
+  }
 }
 
 function calculateScore() {
@@ -583,28 +578,54 @@ function calculateScore() {
   return Math.max(0, Math.round(basePoints * timeBonus * levelMultiplier - penalties));
 }
 
-function saveToLeaderboard(username) {
-  const leaderboard = JSON.parse(localStorage.getItem('proveBoardLeaderboard')) || [];
+async function saveToLeaderboard(username) {
   const score = calculateScore();
-  
-  // Konversi nama mode untuk leaderboard
   let modeDisplay;
+  
   if (unlimitedLives) {
-    modeDisplay = `OC (${getLeaderboardModeName(currentLevel)})`; // Format: OC (ECO)
+    modeDisplay = `OC (${getLeaderboardModeName(currentLevel)})`;
   } else {
     modeDisplay = getLeaderboardModeName(currentLevel);
   }
   
-  leaderboard.push({
-    username,
-    mode: modeDisplay,
-    score,
-    timestamp: new Date().toISOString()
-  });
-  
-  leaderboard.sort((a, b) => b.score - a.score || new Date(b.timestamp) - new Date(a.timestamp));
-  const newLeaderboard = leaderboard.slice(0, 10);
-  localStorage.setItem('proveBoardLeaderboard', JSON.stringify(newLeaderboard));
+  try {
+    const { error } = await supabase
+      .from('leaderboard')
+      .insert([
+        { 
+          username,
+          mode: modeDisplay,
+          score,
+          timestamp: new Date().toISOString()
+        }
+      ]);
+    
+    if (error) throw error;
+
+    // Update leaderboard display
+    await updateLeaderboardDisplay();
+
+    // Replace form with success message
+    document.getElementById('usernameForm').innerHTML = `
+      <div class="score-submitted-message">
+        <div class="submission-text">Score submitted!</div>
+        <div class="submission-action">
+          <a href="#" id="viewLeaderboardLink" class="text-only-buttonf">View Leaderboard</a>
+        </div>
+      </div>
+    `;
+    
+    // Add event listener for view leaderboard button
+    document.getElementById('viewLeaderboardLink')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      gameOverOverlay.classList.remove('show');
+      showLeaderboard();
+    });
+
+  } catch (err) {
+    console.error('Error saving to leaderboard:', err);
+    alert('Failed to submit score. Please try again.');
+  }
 }
 
 // Helper function to convert level to display name
