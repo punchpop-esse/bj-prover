@@ -463,6 +463,22 @@ function showEndOverlay() {
     if (username) {
       currentUsername = username;
       saveToLeaderboard(username);
+      
+      // Replace the form with success message
+      document.getElementById('usernameForm').innerHTML = `
+  <div class="score-submitted-message">
+    <div class="submission-text">Score submitted!</div>
+    <div class="submission-action">
+      <a href="#" id="viewLeaderboardLink" class="text-only-buttonf">View Leaderboard</a>
+    </div>
+  </div>
+`;
+      
+      document.getElementById('viewLeaderboardLink')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        gameOverOverlay.classList.remove('show');
+        showLeaderboard();
+      });
     }
   });
 
