@@ -427,7 +427,7 @@ function showEndOverlay() {
 
   const messageHTML = `
   <div class="game-result-message">
-    <strong>${isWin ? "🎉 Congratulations. Thanks for become a true prover." : "❌ Try again"}</strong>
+    <strong>${isWin ? "🎉 Congratulations, you're a true prover." : "❌ Try again"}</strong>
   </div>
   <div id="usernameForm">
     <input type="text" id="usernameInput" class="glass-input" placeholder="Enter your name" maxlength="20">
