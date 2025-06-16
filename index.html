@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prove Board</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+  <h1>Prove Board</h1>
+  <p>Find the same pair of GPU within the time limit!</p>
+  
+  <div id="gameOverOverlay"></div>
+  
+  <div id="leaderboardModal" class="modal">
+    <div class="modal-content">
+      <h2>Top 10 Leaderboard</h2>
+      <table id="leaderboardTable">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Username</th>
+            <th>Mode</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+	<div class="score-note">
+      <small>Score = (Matches × 1000 × Mode Multiplier) + Time Bonus - (Traps × 500)</small>
+    </div>
+      <div class="leaderboard-actions">
+        <button id="closeLeaderboard" class="glass-button">Back to Main Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="game-container">
+    <div class="game-header">
+      <div id="levelDisplay" class="mode-text">SELECT MODE</div>
+      <div id="lives"></div>
+    </div>
+    <div class="game-board" id="game-board"></div>
+    <div id="timerBarContainer">
+      <div id="timerBar"></div>
+    </div>
+    <div id="message"></div>
+  </div>
+
+  <button id="startButton" class="glass-button">Let's Play</button>
+  <button id="restartButton"></button>
+  
+  
+  <div id="levelArrowWrapper">
+    <img src="images/arrow-hint.png" alt="Tap to choose level" id="levelHint" />
+  </div>
+
+  <div id="levelSelectorWrapper">
+    <div id="levelSelector">
+      <button class="glass-button level-btn" data-level="Easy">Eco</button>
+      <button class="glass-button level-btn" data-level="Medium">Turbo</button>
+      <button class="glass-button level-btn" data-level="Hard">Burn</button>
+    </div>
+	  <button id="showLeaderboard" class="glass-button">View Leaderboard</button>
+  </div>
+  
+  <audio id="startSound" src="sounds/start.mp3"></audio>
+  <audio id="levelSound" src="sounds/level.mp3"></audio>
+  <script src="script.js"></script>
+</body>
+</html>
